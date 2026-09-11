@@ -173,7 +173,7 @@ async def creategame(ctx, *, arg: str):
         f"🏟️ **{team1}** ({odds1:+d}) vs **{team2}** ({odds2:+d})\n"
         f"Use `!bet {game_id} <team> <amount>` to place your wager!"
     )
-    
+
 # --- PLACE BET ---
 @bot.command(name="bet")
 async def bet(ctx, game_id: int, choice: str, amount: float):
@@ -287,6 +287,24 @@ async def top(ctx):
         name = member.name if member else f"User {user_id}"
         msg += f"{i}. **{name}** — ${balance:.2f}\n"
 
+    await ctx.send(msg)
+
+@bot.command(name="games")
+async def games(ctx):
+    cursor.execute("SELECT id, team1, team2, odds_team1, odds_team2 FROM games WHERE status='open'")
+    active_games = cursor.fetchall()
+    
+    if not active_games:
+        await ctx.send("❌ There are no open games right now.")
+        return
+        
+    msg = "🎮 **Open Games:**\n"
+    for g in active_games:
+        gid, t1, t2, o1, o2 = g
+        o1_str = f"+{o1}" if o1 > 0 else str(o1)
+        o2_str = f"+{o2}" if o2 > 0 else str(o2)
+        msg += f"**Game #{gid}**: {t1} ({o1_str}) vs {t2} ({o2_str})\n"
+        
     await ctx.send(msg)
 
 # --- RUN BOT ---
