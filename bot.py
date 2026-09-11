@@ -271,6 +271,9 @@ async def games(ctx):
     
     msg += "\nUse `!bet <game_id> <team> <amount>` to place your wager!"
     await ctx.send(msg)
+@bot.command(name="ping")
+async def ping(ctx):
+    await ctx.send("Pong! 🏓 Bot is online and listening.")
 # Run the bot
 if TOKEN:
     bot.run(TOKEN)
