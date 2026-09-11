@@ -3,7 +3,21 @@ import sqlite3
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running!")
+
+def run_server():
+    server = HTTPServer(('0.0.0.0', 10000), SimpleHandler)
+    server.serve_forever()
+
+# Start the dummy server in a background thread
+threading.Thread(target=run_server, daemon=True).start()
 # Load environment variables from .env
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
