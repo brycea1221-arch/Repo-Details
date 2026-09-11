@@ -255,7 +255,22 @@ async def creategame(ctx, team1: str, team2: str):
     
     # Send the public response for everyone
     await ctx.send(f"🎮 **New Game Open!** **{team1} vs {team2}** is now open for betting!")
+# List all open games
+@bot.command(name="games")
+async def games(ctx):
+    cursor.execute("SELECT game_id, team1, team2 FROM games WHERE status = 'open'")
+    open_games = cursor.fetchall()
 
+    if not open_games:
+        await ctx.send("❌ There are currently no open games to bet on.")
+        return
+
+    msg = "🎮 **Active Games for Betting** 🎮\n"
+    for game_id, team1, team2 in open_games:
+        msg += f"Game #{game_id}: **{team1} vs {team2}**\n"
+    
+    msg += "\nUse `!bet <game_id> <team> <amount>` to place your wager!"
+    await ctx.send(msg)
 # Run the bot
 if TOKEN:
     bot.run(TOKEN)
