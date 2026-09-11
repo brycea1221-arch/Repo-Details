@@ -124,30 +124,56 @@ async def daily(ctx):
     await ctx.send(f"💰 {ctx.author.mention} claimed your daily bonus of **$250.00**! Your new balance is ${new_balance:.2f}.")
 
 # --- CREATE GAME (Admin only) ---
+# --- CREATE GAME (Admin only) ---
 @bot.command(name="creategame")
 @commands.has_permissions(administrator=True)
-async def creategame(ctx, team1: str, odds1: int, team2: str, odds2: int, spread: float = 0.0, total_line: float = 0.0):
+async def creategame(ctx, *, arg: str):
     try:
         await ctx.message.delete()
     except discord.Forbidden:
         pass
 
+    # Expected format: Team One 100 Team Two -118
+    # We parse by finding the last two items as integers (the odds)
+    parts = arg.strip().split()
+    if len(parts) < 4:
+        await ctx.send("❌ Format error! Use: `!creategame Ohio State 100 Texas -118`", delete_after=10)
+        return
+
+    try:
+        odds2 = int(parts[-1])
+        odds1 = int(parts[-2])
+    except ValueError:
+        await ctx.send("❌ The last two values must be your American odds numbers (e.g., 100 -118).", delete_after=10)
+        return
+
+    # Everything before the last two numbers represents team names. Let's split them in half roughly or look for "vs"
+    middle_idx = len(parts) - 2
+    teams_part = " ".join(parts[:middle_idx])
+    
+    if " vs " in teams_part.lower():
+        team_split = teams_part.split(" vs ")
+        team1 = team_split[0].strip()
+        team2 = team_split[1].strip()
+    else:
+        # Fallback: split right down the middle of the remaining words
+        words = teams_part.split()
+        mid = len(words) // 2
+        team1 = " ".join(words[:mid])
+        team2 = " ".join(words[mid:])
+
     cursor.execute(
-        "INSERT INTO games (team1, team2, odds_team1, odds_team2, spread, total_line, status) VALUES (?, ?, ?, ?, ?, ?, 'open')",
-        (team1, team2, odds1, odds2, spread, total_line)
+        "INSERT INTO games (team1, team2, odds_team1, odds_team2, status) VALUES (?, ?, ?, ?, 'open')",
+        (team1, team2, odds1, odds2)
     )
     db.commit()
     game_id = cursor.lastrowid
 
-    spread_text = f" | Spread: {team1} {spread:+g}" if spread != 0.0 else ""
-    total_text = f" | O/U: {total_line}" if total_line > 0 else ""
-
     await ctx.send(
         f"🎮 **New Game Open!** (Game #{game_id})\n"
-        f"🏟️ **{team1}** ({odds1:+d}) vs **{team2}** ({odds2:+d}){spread_text}{total_text}\n"
+        f"🏟️ **{team1}** ({odds1:+d}) vs **{team2}** ({odds2:+d})\n"
         f"Use `!bet {game_id} <team> <amount>` to place your wager!"
     )
-
 # --- LIST GAMES ---
 @bot.command(name="games")
 async def games(ctx):
