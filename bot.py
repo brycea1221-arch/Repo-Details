@@ -178,8 +178,8 @@ async def daily(ctx):
     await ctx.send(f"🎁 You claimed your daily bonus of **$250.00**! Your new balance is ${new_balance:.2f}.")
 
 # 5. Leaderboard Command
-@bot.command(name="leaderboard")
-async def leaderboard(ctx):
+@bot.command(name="top") # Changed from leaderboard to top
+async def top(ctx):
     cursor.execute("SELECT user_id, balance FROM users ORDER BY balance DESC LIMIT 5")
     top_users = cursor.fetchall()
 
