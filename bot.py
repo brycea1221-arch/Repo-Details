@@ -68,6 +68,9 @@ cursor.execute('''
 db.commit()
 import datetime
 from discord.ext import commands
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 # 1. Create a Game (Admin only)
 @bot.command(name="create_game")
@@ -212,9 +215,6 @@ cursor.execute("""
 db.commit()
 
 # Set up bot intents
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
